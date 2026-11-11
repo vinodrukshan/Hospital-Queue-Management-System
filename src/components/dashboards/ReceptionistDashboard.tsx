@@ -23,7 +23,12 @@ import {
   AlertOctagon
 } from 'lucide-react';
 
-export const ReceptionistDashboard: React.FC = () => {
+interface ReceptionistDashboardProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+export const ReceptionistDashboard: React.FC<ReceptionistDashboardProps> = ({ activeTab, onTabChange }) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Array<Profile & { patient_data?: any }>>([]);
@@ -33,6 +38,12 @@ export const ReceptionistDashboard: React.FC = () => {
 
   // Patient Registration Modal State
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'register') {
+      setIsRegisterOpen(true);
+    }
+  }, [activeTab]);
   const [regForm, setRegForm] = useState({
     fullName: '',
     phone: '',

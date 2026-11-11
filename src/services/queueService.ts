@@ -9,8 +9,22 @@ import {
   INITIAL_NOTIFICATIONS
 } from './mockDataStore';
 
+// Cross-tab shared storage key
+const LOCAL_QUEUE_STORAGE_KEY = 'hospital_local_queue_v1';
+
 // In-memory reactive state for local store / offline fallback
-let localQueue: QueueEntry[] = [...INITIAL_QUEUE_ENTRIES];
+// Try to restore from localStorage (shared between tabs) on first load
+let localQueue: QueueEntry[] = (() => {
+  try {
+    const stored = localStorage.getItem(LOCAL_QUEUE_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as QueueEntry[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_e) { /* ignore */ }
+  return [...INITIAL_QUEUE_ENTRIES];
+})();
+
 let localListeners: Array<() => void> = [];
 
 export const subscribeLocalQueue = (callback: () => void) => {
@@ -21,6 +35,10 @@ export const subscribeLocalQueue = (callback: () => void) => {
 };
 
 const notifyQueueChange = () => {
+  // Persist to localStorage so other browser tabs pick up the change instantly
+  try {
+    localStorage.setItem(LOCAL_QUEUE_STORAGE_KEY, JSON.stringify(localQueue));
+  } catch (_e) { /* storage quota – ignore */ }
   localListeners.forEach(fn => fn());
 };
 

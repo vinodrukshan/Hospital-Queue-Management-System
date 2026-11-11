@@ -21,7 +21,15 @@ import {
   Server
 } from 'lucide-react';
 
-export const TechnicalMaintainerDashboard: React.FC = () => {
+interface TechnicalMaintainerDashboardProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+export const TechnicalMaintainerDashboard: React.FC<TechnicalMaintainerDashboardProps> = ({
+  activeTab = 'health',
+  onTabChange
+}) => {
   const { user } = useAuth();
   const { connectionStatus, lastPingMs } = useRealtime();
   const [devices, setDevices] = useState<Device[]>([]);

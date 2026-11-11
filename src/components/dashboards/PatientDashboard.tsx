@@ -76,6 +76,11 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({ activeTab = 
     return `~${minutes} minutes`;
   };
 
+  const showToken = activeTab === 'overview' || activeTab === 'token';
+  const showAppointments = activeTab === 'overview' || activeTab === 'appointments';
+  const showHistory = activeTab === 'overview' || activeTab === 'history';
+  const showReports = activeTab === 'overview' || activeTab === 'reports';
+
   if (isLoading) {
     return (
       <div className="p-8 space-y-4 max-w-6xl mx-auto">
@@ -125,7 +130,8 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({ activeTab = 
       </div>
 
       {/* Live Token Status Banner */}
-      {token ? (
+      {showToken && (
+        token ? (
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center space-x-2.5">
@@ -214,13 +220,14 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({ activeTab = 
             You do not currently have an active waiting queue token for today. When you arrive at the clinic, please check in at the Reception Desk to receive your official token number.
           </p>
         </div>
-      )}
+      ))}
 
       {/* Main Tabs Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Appointments & Medical History */}
         <div className="lg:col-span-2 space-y-6">
           {/* Today & Upcoming Appointments */}
+          {showAppointments && (
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
@@ -266,8 +273,10 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({ activeTab = 
               </div>
             )}
           </div>
+          )}
 
           {/* Past Consultations & Prescriptions */}
+          {showHistory && (
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
@@ -331,11 +340,13 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({ activeTab = 
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Right Column: Lab Reports & Patient Alerts */}
         <div className="space-y-6">
           {/* Laboratory & Investigation Reports */}
+          {showReports && (
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
@@ -378,6 +389,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({ activeTab = 
               </div>
             )}
           </div>
+          )}
 
           {/* Hospital Patient Instructions */}
           <div className="bg-sky-50 rounded-2xl p-5 border border-sky-100 space-y-3">

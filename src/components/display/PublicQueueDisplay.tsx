@@ -46,12 +46,28 @@ export const PublicQueueDisplay: React.FC = () => {
 
   useEffect(() => {
     refreshDisplayQueue();
+
+    // Same-tab listener (when display is in same tab as receptionist)
     const unsub = subscribeLocalQueue(() => {
       refreshDisplayQueue();
     });
+
+    // Cross-tab listener: fires instantly when another tab writes to localStorage
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === 'hospital_local_queue_v1' && e.newValue) {
+        // Re-use the full refresh so entries are properly hydrated with
+        // patient / clinic / doctor sub-objects from INITIAL_ arrays
+        refreshDisplayQueue();
+      }
+    };
+    window.addEventListener('storage', handleStorageEvent);
+
+    // Polling fallback every 5 s (catches any edge-cases the events miss)
     const interval = setInterval(refreshDisplayQueue, 5000);
+
     return () => {
       unsub();
+      window.removeEventListener('storage', handleStorageEvent);
       clearInterval(interval);
     };
   }, []);

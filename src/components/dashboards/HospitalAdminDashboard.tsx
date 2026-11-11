@@ -21,12 +21,29 @@ import {
   AlertCircle 
 } from 'lucide-react';
 
-export const HospitalAdminDashboard: React.FC = () => {
+interface HospitalAdminDashboardProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+export const HospitalAdminDashboard: React.FC<HospitalAdminDashboardProps> = ({ 
+  activeTab: propActiveTab = 'overview',
+  onTabChange
+}) => {
   const { user } = useAuth();
   const [staffList, setStaffList] = useState<Profile[]>([]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [queueEntries, setQueueEntries] = useState<QueueEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'clinics' | 'reports'>('overview');
+  const [internalTab, setInternalTab] = useState<'overview' | 'staff' | 'clinics' | 'reports'>('overview');
+
+  const currentTab = (propActiveTab as any) || internalTab;
+
+  const handleTabSelect = (tab: 'overview' | 'staff' | 'clinics' | 'reports') => {
+    setInternalTab(tab);
+    if (onTabChange) {
+      onTabChange(tab);
+    }
+  };
 
   // Staff Creation Modal
   const [isNewStaffOpen, setIsNewStaffOpen] = useState(false);
@@ -180,11 +197,11 @@ export const HospitalAdminDashboard: React.FC = () => {
           { id: 'reports', label: 'Operational Reports', icon: BarChart3 },
         ].map(tab => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+          const isActive = currentTab === tab.id;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => handleTabSelect(tab.id as any)}
               className={`pb-3 px-2 text-xs font-bold flex items-center space-x-1.5 border-b-2 transition-all ${
                 isActive
                   ? 'border-purple-600 text-purple-700'
@@ -199,7 +216,7 @@ export const HospitalAdminDashboard: React.FC = () => {
       </div>
 
       {/* TAB 1: OVERVIEW */}
-      {activeTab === 'overview' && (
+      {currentTab === 'overview' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -273,7 +290,7 @@ export const HospitalAdminDashboard: React.FC = () => {
       )}
 
       {/* TAB 2: STAFF MANAGEMENT */}
-      {activeTab === 'staff' && (
+      {currentTab === 'staff' && (
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="flex justify-between items-center border-b border-slate-100 pb-3">
             <div>
@@ -342,7 +359,7 @@ export const HospitalAdminDashboard: React.FC = () => {
       )}
 
       {/* TAB 3: CLINICS CONFIGURATION */}
-      {activeTab === 'clinics' && (
+      {currentTab === 'clinics' && (
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="font-bold text-slate-900 text-base">Clinics & Consultation Counters Configuration</h3>
@@ -379,7 +396,7 @@ export const HospitalAdminDashboard: React.FC = () => {
       )}
 
       {/* TAB 4: OPERATIONAL REPORTS */}
-      {activeTab === 'reports' && (
+      {currentTab === 'reports' && (
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="font-bold text-slate-900 text-base">Hospital Operational Performance Summary</h3>

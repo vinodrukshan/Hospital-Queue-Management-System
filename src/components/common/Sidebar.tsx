@@ -14,18 +14,25 @@ import {
   ShieldAlert,
   Building2,
   Tv,
-  Bell
+  Bell,
+  X
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface SidebarProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  currentTab, 
+  onTabChange,
+  isMobileOpen = false,
+  onCloseMobile
+}) => {
   const { role } = useAuth();
-  const location = useLocation();
 
   // Navigation items specific to each role
   const getNavItems = () => {
@@ -80,68 +87,105 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
 
   const navItems = getNavItems();
 
-  return (
-    <aside className="w-full md:w-64 bg-white border-r border-slate-200 shrink-0 md:min-h-[calc(100vh-4rem)]">
-      <div className="p-4 space-y-6">
-        {/* Navigation list */}
-        <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">
-            Navigation Menu
-          </div>
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onTabChange(item.id)}
-                  className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    isActive
-                      ? 'bg-sky-50 text-sky-700 font-bold shadow-xs border border-sky-100'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+  const handleItemClick = (tabId: string) => {
+    onTabChange(tabId);
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
 
-        {/* Quick Tools */}
-        <div className="pt-4 border-t border-slate-100">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">
-            Live Interfaces
+  return (
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div
+          onClick={onCloseMobile}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 md:hidden"
+        />
+      )}
+
+      {/* Sidebar Container */}
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 shrink-0 transform transition-transform duration-200 ease-in-out md:translate-x-0 ${
+          isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:shadow-none'
+        } md:min-h-[calc(100vh-4rem)] flex flex-col justify-between`}
+      >
+        <div className="p-4 space-y-6 overflow-y-auto">
+          {/* Mobile Header */}
+          <div className="flex md:hidden items-center justify-between pb-3 border-b border-slate-100">
+            <span className="font-bold text-slate-800 text-sm">Navigation Menu</span>
+            <button
+              onClick={onCloseMobile}
+              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <div className="space-y-1">
-            <Link
-              to="/display"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-3 px-3 py-2 text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-colors"
-            >
-              <Tv className="w-4 h-4 text-sky-500" />
-              <span>Public Queue Display</span>
-            </Link>
-            <Link
-              to="/notifications"
-              className="flex items-center space-x-3 px-3 py-2 text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-colors"
-            >
-              <Bell className="w-4 h-4 text-amber-500" />
-              <span>Notification Center</span>
-            </Link>
+
+          {/* Navigation list */}
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">
+              Navigation Menu
+            </div>
+            <nav className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item.id)}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                      isActive
+                        ? 'bg-sky-50 text-sky-700 font-bold shadow-xs border border-sky-100'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Quick Tools */}
+          <div className="pt-4 border-t border-slate-100">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">
+              Live Interfaces
+            </div>
+            <div className="space-y-1">
+              <Link
+                to="/display"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onCloseMobile}
+                className="flex items-center space-x-3 px-3 py-2 text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-colors"
+              >
+                <Tv className="w-4 h-4 text-sky-500" />
+                <span>Public Queue Display</span>
+              </Link>
+              <Link
+                to="/notifications"
+                onClick={onCloseMobile}
+                className="flex items-center space-x-3 px-3 py-2 text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-colors"
+              >
+                <Bell className="w-4 h-4 text-amber-500" />
+                <span>Notification Center</span>
+              </Link>
+            </div>
           </div>
         </div>
 
         {/* System Info Box */}
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
-          <div className="font-semibold text-slate-700">Project G05 NIID Clinics</div>
-          <div>Version: 1.0.0 Production Ready</div>
-          <div className="text-[10px] text-slate-400">PostgreSQL • Supabase Realtime</div>
+        <div className="p-4 border-t border-slate-100">
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
+            <div className="font-semibold text-slate-700">Project G05 NIID Clinics</div>
+            <div>Version: 1.0.0 Production Ready</div>
+            <div className="text-[10px] text-slate-400">PostgreSQL • Supabase Realtime</div>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 };

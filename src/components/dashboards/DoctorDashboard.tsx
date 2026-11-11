@@ -24,7 +24,15 @@ import {
   Sparkles
 } from 'lucide-react';
 
-export const DoctorDashboard: React.FC = () => {
+interface DoctorDashboardProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
+  activeTab = 'console',
+  onTabChange
+}) => {
   const { user } = useAuth();
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [queue, setQueue] = useState<QueueEntry[]>([]);
@@ -192,6 +200,10 @@ export const DoctorDashboard: React.FC = () => {
   const waitingPatients = queue.filter(q => q.status === 'waiting');
   const completedToday = queue.filter(q => q.status === 'completed');
 
+  const showStation = activeTab === 'console';
+  const showQueue = activeTab === 'console' || activeTab === 'waiting_queue';
+  const showHistory = activeTab === 'console' || activeTab === 'history';
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Top Banner: Doctor Profile & Assigned Room */}
@@ -274,6 +286,106 @@ export const DoctorDashboard: React.FC = () => {
       </div>
 
       {/* Main Clinical Console Grid */}
+      {activeTab === 'waiting_queue' ? (
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center space-x-2">
+              <Users className="w-5 h-5 text-sky-600" />
+              <h3 className="font-bold text-slate-900 text-lg">Waiting Queue – All Active Entries</h3>
+            </div>
+            <span className="text-xs bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full">
+              {waitingPatients.length} Waiting
+            </span>
+          </div>
+
+          {waitingPatients.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 text-sm">
+              No patients currently waiting in this clinic.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {waitingPatients.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="p-4 bg-slate-50 hover:bg-sky-50 border border-slate-200 rounded-xl transition-all flex items-center justify-between"
+                >
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-black text-slate-900 text-lg font-mono">{item.token_number}</span>
+                      <StatusBadge status={item.priority} type="priority" />
+                    </div>
+                    <div className="text-xs text-slate-700 font-bold mt-1">
+                      {item.patient?.full_name || 'Patient'}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      Check-in: {formatTime(item.checked_in_at)}
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-sm font-bold text-slate-400">#{idx + 1}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : activeTab === 'history' ? (
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center space-x-2">
+              <FileText className="w-5 h-5 text-sky-600" />
+              <h3 className="font-bold text-slate-900 text-lg">Authorized Patient Medical Records</h3>
+            </div>
+            <span className="text-xs text-slate-400">Clinical History</span>
+          </div>
+
+          {!selectedPatientHistory ? (
+            <div className="p-12 text-center text-slate-400 text-xs">
+              Medical history will load here when a patient is called or selected.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {selectedPatientHistory.consultations.length === 0 ? (
+                <p className="text-xs text-slate-400">No previous consultations recorded for this patient.</p>
+              ) : (
+                selectedPatientHistory.consultations.map((c) => (
+                  <div key={c.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div className="flex justify-between items-start font-semibold text-slate-900">
+                      <span>Diagnosis: {c.diagnosis}</span>
+                      <span className="text-slate-400 font-normal">{formatDate(c.consultation_start)}</span>
+                    </div>
+                    {c.chief_complaint && (
+                      <div>
+                        <span className="text-slate-500 font-medium">Chief Complaint: </span>
+                        <span className="text-slate-800">{c.chief_complaint}</span>
+                      </div>
+                    )}
+                    {c.clinical_notes && (
+                      <div className="p-2 bg-white rounded border border-slate-100 text-slate-700">
+                        <strong>Doctor Notes: </strong>
+                        {c.clinical_notes}
+                      </div>
+                    )}
+                    {c.prescriptions && c.prescriptions.length > 0 && (
+                      <div className="mt-1">
+                        <span className="font-semibold text-slate-700">Prescriptions: </span>
+                        {c.prescriptions.map((p) =>
+                          p.items?.map((item) => (
+                            <span key={item.id} className="inline-block bg-sky-100 text-sky-800 px-2 py-0.5 rounded text-[11px] mr-1.5 mt-1">
+                              {item.medication_name} ({item.dosage})
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Active Patient Console & Actions */}
         <div className="lg:col-span-2 space-y-6">
@@ -486,6 +598,7 @@ export const DoctorDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Complete Consultation Modal */}
       {isCompleteModalOpen && activePatientEntry && (

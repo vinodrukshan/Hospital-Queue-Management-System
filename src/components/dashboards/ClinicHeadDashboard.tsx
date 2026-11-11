@@ -19,7 +19,15 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-export const ClinicHeadDashboard: React.FC = () => {
+interface ClinicHeadDashboardProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+export const ClinicHeadDashboard: React.FC<ClinicHeadDashboardProps> = ({
+  activeTab = 'overview',
+  onTabChange
+}) => {
   const { user } = useAuth();
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [clinicDoctors, setClinicDoctors] = useState<Profile[]>([]);
